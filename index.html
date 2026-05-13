@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>蛋仔派对 资源获取器</title>
+<title>U5 资源获取器</title>
 <link rel="icon" type="image/png" href="right_icon_6f50e56a_inverted.webp">
 <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
@@ -205,6 +205,8 @@
   .file-row.selected { background: var(--md-sys-color-primary-container); }
   .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 12px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; }
   .file-size { color: var(--md-sys-color-on-surface-variant); text-align: right; }
+  .file-row.no-dl .file-name { color: var(--md-sys-color-on-surface-variant); opacity: .55; }
+  .file-row.no-dl .file-size { opacity: .45; }
 
   .empty-state {
     display: flex; flex-direction: column;
@@ -279,8 +281,8 @@
 
   .info-grid { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: start; }
   .info-label { font-size: 12px; font-weight: 600; color: var(--md-sys-color-on-surface-variant); padding-top: 8px; }
-  .info-value { font-size: 13px; background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-small); padding: 6px 10px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; word-break: break-all; }
-  .copy-btn { background: none; border: none; cursor: pointer; color: var(--md-sys-color-primary); flex-shrink: 0; display: flex; align-items: center; padding: 0; transition: opacity .15s; }
+  .info-value { font-size: 13px; background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-small); padding: 6px 10px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; display: flex; align-items: center; justify-content: space-between; gap: 8px; word-break: break-all; }
+  .copy-btn { background: none; border: none; cursor: pointer; color: var(--md-sys-color-primary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: center; padding: 2px; transition: opacity .15s; }
   .copy-btn:hover { opacity: .7; }
   .copy-btn .material-icons-round { font-size: 16px; }
 
@@ -323,7 +325,7 @@
 
 <header class="top-app-bar">
   <div class="app-icon"><span class="material-icons-round">extension</span></div>
-  <div class="app-title">蛋仔派对 资源获取器</div>
+  <div class="app-title">U5 资源获取器</div>
   <div class="version-chip" id="version-chip">
     <span class="material-icons-round">schedule</span>
     <span id="version-text">—</span>
@@ -417,19 +419,27 @@
   </div>
 </div>
 
-<div id="snackbar">
-  <span class="material-icons-round">check_circle</span>
-  <span id="snackbar-text"></span>
-</div>
+<div id="snackbar"><span class="material-icons-round">check_circle</span><span id="snackbar-text"></span></div>
 
 <script>
 const INDEX_URL = "https://u5.update.netease.com/pl/npk_version_android.txt";
 const SERVER    = "https://u5-06.gph.netease.com";
+const SKIP_KEYS = new Set(); // 不过滤任何文件
+
+// 这些文件属于 PPK 类型，使用 patch_ 路径
+const PATCH_KEYS = new Set(["npkext_file_info","npkext_file_full_info","npkext_file_info_muti","npkext_file_info_new","npk_full_info_bin"]);
+
+// 屏蔽不显示的文件
+const BLOCK_FILES = new Set(["assets.ppk","assets_d.ppk"]);
+// 屏蔽前缀（无效资源，不显示）
+const BLOCK_PREFIX = ["sub_editor_props."];
+// 显示但不提供下载的文件（原来被过滤的）
+const NO_DL_KEYS = new Set();
 
 let indexData=null,version="",allItems=[],filteredItems=[],currentItem=null;
 let sortCol="name",sortAsc=true,category="NPK";
 
-const ASSETS_PPK=new Set(["assets_d.ppk","assets_d.ppk.map","assets_file_storage","assets.ppk","assets.ppk.map"，"npkext_file_info","npkext_file_full_info","npkext_file_info_muti","npkext_file_info_new","npk_full_info_bin]);
+const ASSETS_PPK=new Set(["assets_d.ppk","assets_d.ppk.map","assets_file_storage","assets.ppk","assets.ppk.map"]);
 
 function getPatchVersion(ver){
   return ver.replace(/^npkext_/,"patch_");
@@ -442,13 +452,16 @@ function getSubdir(f){
   if(f.startsWith("sub_pet"))return"sub_pet";
   if(f.startsWith("sub_part"))return"sub_part";
   if(f.startsWith("sub_emoji"))return"sub_emoji";
-  if(f.startsWith("sub_editor"))return null;
+  if(f.startsWith("sub_editor"))return"__patch__";
   return"";
 }
 function buildUrl(ver,fname){
+  // patch 路径：包含 script 的文件、PATCH_KEYS、sub_editor、assets ppk/map
+  if(fname.includes("script")) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
+  if(PATCH_KEYS.has(fname)) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
   if(ASSETS_PPK.has(fname)) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
   const sub=getSubdir(fname);
-  if(sub===null)return null;
+  if(sub==="__patch__")return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
   return sub?`${SERVER}/${ver}/${sub}/${fname}`:`${SERVER}/${ver}/${fname}`;
 }
 function fmtSize(s){
@@ -458,8 +471,13 @@ function fmtSize(s){
   return s+" B";
 }
 function parseVersion(v){
-  const m=v.match(/_(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})_/);
-  return m?`${m[1]}-${m[2]}-${m[3]} ${m[4]}:${m[5]}`:v;
+  const m=v.match(/_(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?_/);
+  if(!m)return v;
+  let h=parseInt(m[4],10);
+  const ampm=h>=12?"PM":"AM";
+  h=h%12||12;
+  const mm=m[5],ss=m[6]||"00";
+  return`${m[1]}-${m[2]}-${m[3]} ${String(h).padStart(2,"0")}:${mm}:${ss} ${ampm}`;
 }
 
 let isLoading=false;
@@ -526,13 +544,28 @@ function parseItems(cat){
     const d=indexData[sec];
     if(!d||typeof d!=="object")continue;
     for(const[fname,info]of Object.entries(d)){
-      if(SKIP_KEYS.has(fname))continue;
+      if(PATCH_KEYS.has(fname)){if(cat!=="PPK")continue;}
       if(!Array.isArray(info)||info.length<2)continue;
       const[size,md5]=info;
       if(typeof size!=="number"||typeof md5!=="string")continue;
-      const url=buildUrl(version,fname);
-      if(url===null)continue;
+      // BLOCK_FILES 和 BLOCK_PREFIX 文件显示但不提供下载链接
+      const noDl=BLOCK_FILES.has(fname)||BLOCK_PREFIX.some(p=>fname.startsWith(p));
+      const url=noDl?null:buildUrl(version,fname);
       items.push({name:fname,size,md5,url});
+    }
+  }
+  // PPK 类额外注入 PATCH_KEYS（来自 npkext section）
+  if(cat==="PPK"){
+    const npkext=indexData["npkext"];
+    if(npkext&&typeof npkext==="object"){
+      for(const[fname,info]of Object.entries(npkext)){
+        if(!PATCH_KEYS.has(fname))continue;
+        if(!Array.isArray(info)||info.length<2)continue;
+        const[size,md5]=info;
+        if(typeof size!=="number"||typeof md5!=="string")continue;
+        const url=buildUrl(version,fname);
+        items.push({name:fname,size,md5,url});
+      }
     }
   }
   return items;
@@ -541,8 +574,7 @@ function parseItems(cat){
 function refreshList(){
   allItems=parseItems(category);
   sortCol="name";sortAsc=true;setSortIcons();
-  document.getElementById("search-input").value="";
-  document.getElementById("search-clear").style.display="none";
+  // 保留搜索词，不清空
   applyFilter();
 }
 
@@ -597,7 +629,7 @@ function renderList(){
   }
   const selName=currentItem?.name;
   body.innerHTML=filteredItems.map((item,idx)=>
-    `<div class="file-row${item.name===selName?" selected":""}" data-idx="${idx}" onclick="selectItem(${idx})">
+    `<div class="file-row${item.name===selName?" selected":""}${item.url===null?" no-dl":""}" data-idx="${idx}" onclick="selectItem(${idx})">
       <span class="file-name" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
       <span class="file-size">${item.size>0?fmtSize(item.size):"—"}</span>
     </div>`).join("");
@@ -645,7 +677,8 @@ function openInfoDialog(){
   if(dialogCloseDone!==null){el.removeEventListener("animationend",dialogCloseDone);dialogCloseDone=null;}
   el.classList.remove("closing","open");
 
-  const fields=[["文件名",currentItem.name],["大小",currentItem.size>0?fmtSize(currentItem.size):"—"],["MD5",currentItem.md5],["下载链接",currentItem.url||"—"]];
+  const fields=[["文件名",currentItem.name],["大小",currentItem.size>0?fmtSize(currentItem.size):"—"],["MD5",currentItem.md5]];
+  if(currentItem.url)fields.push(["下载链接",currentItem.url]);
   const grid=document.getElementById("info-grid");
   grid.innerHTML="";
   fields.forEach(([label,value])=>{
@@ -694,12 +727,12 @@ document.getElementById("info-grid").addEventListener("click",e=>{
   if(btn&&btn.dataset.copy!==undefined)copyText(btn.dataset.copy);
 });
 
-let snackTimer,hideTimer;
+let snackTimer,hideTimer,_snkDone=null;
 function showSnack(msg){
   const el=document.getElementById("snackbar");
   document.getElementById("snackbar-text").textContent=msg;
-  clearTimeout(snackTimer);
-  clearTimeout(hideTimer);
+  clearTimeout(snackTimer);clearTimeout(hideTimer);
+  if(_snkDone){el.removeEventListener("animationend",_snkDone);_snkDone=null;}
   el.classList.remove("show","hide");
   el.style.visibility="visible";
   el.style.animation="none";
@@ -707,11 +740,10 @@ function showSnack(msg){
   el.style.animation="";
   el.classList.add("show");
   snackTimer=setTimeout(()=>{
-    el.classList.remove("show");
-    el.classList.add("hide");
-    const hideDone=()=>{el.classList.remove("hide");el.style.visibility="hidden";};
-    el.addEventListener("animationend",hideDone,{once:true});
-    hideTimer=setTimeout(hideDone,400);
+    el.classList.remove("show");el.classList.add("hide");
+    _snkDone=()=>{el.classList.remove("hide");el.style.visibility="hidden";_snkDone=null;};
+    el.addEventListener("animationend",_snkDone,{once:true});
+    hideTimer=setTimeout(()=>{if(_snkDone){el.removeEventListener("animationend",_snkDone);_snkDone();}},420);
   },1500);
 }
 let copyLock=false;
