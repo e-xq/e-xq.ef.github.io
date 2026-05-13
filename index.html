@@ -423,14 +423,13 @@
 </div>
 
 <script>
-const INDEX_URL = "https://u5.update.netease.com/pl/pre_npk_version_android.txt";
+const INDEX_URL = "https://u5.update.netease.com/pl/npk_version_android.txt";
 const SERVER    = "https://u5-06.gph.netease.com";
-const SKIP_KEYS = new Set(["npkext_file_info","npkext_file_full_info","npkext_file_info_muti","npkext_file_info_new","npk_full_info_bin"]);
 
 let indexData=null,version="",allItems=[],filteredItems=[],currentItem=null;
 let sortCol="name",sortAsc=true,category="NPK";
 
-const ASSETS_PPK=new Set(["assets_d.ppk","assets_d.ppk.map","assets_file_storage","assets.ppk","assets.ppk.map"]);
+const ASSETS_PPK=new Set(["assets_d.ppk","assets_d.ppk.map","assets_file_storage","assets.ppk","assets.ppk.map"，"npkext_file_info","npkext_file_full_info","npkext_file_info_muti","npkext_file_info_new","npk_full_info_bin]);
 
 function getPatchVersion(ver){
   return ver.replace(/^npkext_/,"patch_");
