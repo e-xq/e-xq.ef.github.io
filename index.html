@@ -354,6 +354,15 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
 .dialog-body{flex:1;overflow-y:auto;margin-bottom:20px}
 .dialog-actions{display:flex;justify-content:flex-end;gap:8px}
 
+/* ── Disclaimer ── */
+#disclaimer-overlay .dialog{overflow:hidden}
+#disclaimer-overlay .dialog-icon{background:var(--md-error-container);color:var(--md-error)}
+.disclaimer-scroll{flex:1;min-height:0;overflow-y:auto;margin-bottom:20px;padding-right:4px;line-height:1.8}
+.disclaimer-scroll p{font-size:13px;color:var(--md-on-surface-variant);margin-bottom:12px}
+.disclaimer-scroll strong{color:var(--md-on-surface)}
+.disclaimer-scroll .email{color:var(--md-primary);font-weight:600}
+.disclaimer-foot{font-size:12px;color:var(--md-on-surface-variant);text-align:center;margin-bottom:16px;padding-top:10px;border-top:1px solid var(--md-outline-variant)}
+
 .info-grid{display:grid;grid-template-columns:76px 1fr;gap:10px;align-items:start}
 .info-label{font-size:12px;font-weight:600;color:var(--md-on-surface-variant);padding-top:8px}
 .info-value{
@@ -524,6 +533,25 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
 </div>
 
 <div id="snackbar"><span class="material-icons-round">check_circle</span><span id="snackbar-text"></span></div>
+
+<div class="dialog-overlay" id="disclaimer-overlay">
+  <div class="dialog" style="max-width:560px">
+    <div class="dialog-icon"><span class="material-icons-round">warning</span></div>
+    <div class="dialog-title">免责声明</div>
+    <div class="disclaimer-scroll">
+      <p><strong>关于本工具：</strong>「U5 资源获取器」是一个<strong>个人技术学习与交流</strong>项目。它仅提供两项功能：读取某网络游戏官方更新服务器公开的资源清单（NPK/PPK 索引），并展示对应资源的下载链接。</p>
+      <p><strong>不存储、不转存：</strong>本工具<strong>不存储、不缓存、不修改、不重新分发</strong>任何游戏文件。所有文件均直接从<strong>游戏官方 CDN 服务器</strong>下载，下载行为发生在使用者与官方服务器之间，与本工具无关。</p>
+      <p><strong>使用须知：</strong>本工具仅为学习与研究游戏资源的更新机制、文件格式与自动化流程而开发。所展示的资源均为<strong>网易公司（NetEase, Inc.）</strong>的版权资产，下载与使用请遵守<strong>相关游戏的用户协议</strong>及相关法律法规。请勿将下载内容用于商业用途或未经授权的公开传播。</p>
+      <p><strong>免责声明：</strong>官方服务器结构与版本会随时更新，部分链接可能失效，本工具不保证链接的可用性；使用者应自行承担因下载、解包或使用这些资源所产生的一切风险与责任。本工具与游戏运营方无任何关联，作者非其员工，未参与相关游戏的开发。</p>
+      <p><strong>侵权处理：</strong>如果您认为本工具内容侵犯了您的合法权益，请通过邮箱 <span class="email">LFK909688@163.com</span> 联系。</p>
+    </div>
+    <div class="disclaimer-foot">最后更新：2026年8月22日</div>
+    <div class="dialog-actions">
+      <button class="btn-tonal ripple-host" onclick="handleDisclaimer(false)"><span class="material-icons-round" style="font-size:18px">close</span>不同意</button>
+      <button class="btn-filled ripple-host" onclick="handleDisclaimer(true)"><span class="material-icons-round" style="font-size:18px">check</span>同意</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── Theme ──
@@ -808,7 +836,33 @@ function fallbackCopy(text){
   document.body.removeChild(ta);
 }
 
-init();
+// ── Disclaimer ──
+function openDisclaimer(){
+  const ov=document.getElementById("disclaimer-overlay");
+  ov.classList.remove("closing");
+  ov.classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeDisclaimer(){
+  const ov=document.getElementById("disclaimer-overlay");
+  ov.classList.remove("open");
+  ov.classList.add("closing");
+  setTimeout(()=>ov.classList.remove("closing"),200);
+  document.body.style.overflow="";
+}
+function handleDisclaimer(accepted){
+  if(accepted){
+    localStorage.setItem("ef-disclaimer-accepted","true");
+    closeDisclaimer();
+    init();
+  }else{
+    document.body.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:16px;text-align:center;padding:20px;background:var(--md-background);color:var(--md-on-background)"><span class="material-icons-round" style="font-size:48px;color:var(--md-error)">block</span><p style="font-size:18px;color:var(--md-on-surface)">您需要同意免责声明才能使用本站</p><p style="font-size:14px;color:var(--md-on-surface-variant)">请刷新页面后同意免责声明</p></div>';
+  }
+}
+(function(){
+  if(localStorage.getItem("ef-disclaimer-accepted")){init();return;}
+  openDisclaimer();
+})();
 </script>
 </body>
 </html>
