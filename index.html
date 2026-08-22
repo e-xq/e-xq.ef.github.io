@@ -91,10 +91,11 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
 }
 .app-title{
   font-family:'U5Font','Noto Sans SC',sans-serif;
-  font-size:20px;font-weight:400;color:var(--md-on-surface);flex:1
+  font-size:20px;font-weight:400;color:var(--md-on-surface);flex:1;
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap
 }
 .version-chip{
-  display:none;align-items:center;gap:6px;
+  display:none;align-items:center;gap:6px;flex-shrink:0;
   background:var(--md-surface-container);
   color:var(--md-on-surface-variant);
   font-size:12px;padding:5px 12px;border-radius:var(--r-full);
@@ -345,7 +346,7 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
 @keyframes slideUp{from{transform:translateY(16px);opacity:.4}to{transform:translateY(0);opacity:1}}
 @keyframes slideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(20px);opacity:0}}
 .dialog-icon{
-  width:48px;height:48px;border-radius:50%;
+  width:48px;height:48px;border-radius:50%;flex-shrink:0;
   background:var(--md-primary-container);
   display:flex;align-items:center;justify-content:center;
   color:var(--md-primary);font-size:24px;margin-bottom:16px
@@ -405,6 +406,8 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
   .app-title{font-size:17px}
   #main-app{padding:10px;gap:8px}
   .detail-actions{flex-direction:column}
+  .detail-actions .btn-filled,.detail-actions .btn-tonal{width:44px;height:44px;padding:0;border-radius:50%;justify-content:center}
+  .detail-actions .btn-label{display:none}
   .detail-card{flex-wrap:wrap}
   #snackbar{bottom:16px;left:10vw;right:10vw;max-width:80vw;white-space:normal;text-align:left;transform:translateY(80px)}
   @keyframes snkIn{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
@@ -510,10 +513,10 @@ button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
     </div>
     <div class="detail-actions">
       <button class="btn-tonal ripple-host" id="btn-info" onclick="openInfoDialog()" disabled>
-        <span class="material-icons-round">info</span>文件信息
+        <span class="material-icons-round">info</span><span class="btn-label">文件信息</span>
       </button>
       <button class="btn-filled ripple-host" id="btn-open" onclick="openFile()" disabled>
-        <span class="material-icons-round">open_in_new</span>下载
+        <span class="material-icons-round">open_in_new</span><span class="btn-label">下载</span>
       </button>
     </div>
   </div>
