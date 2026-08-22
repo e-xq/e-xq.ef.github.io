@@ -2,323 +2,405 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>U5 资源获取器</title>
-<link rel="icon" type="image/png" href="right_icon_6f50e56a_inverted.webp">
-<link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Google+Sans+Display:wght@400;500;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/webp" href="right_icon_6f50e56a_inverted.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preload" href="U5Font_Round_7744b500.woff2" as="font" type="font/woff2" crossorigin>
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
 <style>
-  @font-face {
-    font-family: 'U5Font';
-    src: url('U5Font_Round_7744b500.woff2') format('woff2');
-    font-weight: normal; font-style: normal; font-display: swap;
-  }
-  :root {
-    --md-sys-color-primary: #0057D9;
-    --md-sys-color-on-primary: #FFFFFF;
-    --md-sys-color-primary-container: #D8E2FF;
-    --md-sys-color-on-primary-container: #001551;
-    --md-sys-color-secondary: #C0006A;
-    --md-sys-color-on-secondary: #FFFFFF;
-    --md-sys-color-secondary-container: #FFD8E8;
-    --md-sys-color-on-secondary-container: #3D0021;
-    --md-sys-color-surface: #F8F9FF;
-    --md-sys-color-surface-variant: #E1E2EC;
-    --md-sys-color-on-surface: #1A1C27;
-    --md-sys-color-on-surface-variant: #44464F;
-    --md-sys-color-outline: #767680;
-    --md-sys-color-outline-variant: #C6C6D0;
-    --md-sys-color-surface-container-lowest: #FFFFFF;
-    --md-sys-color-surface-container-low: #F2F3FA;
-    --md-sys-color-surface-container: #EBEBF4;
-    --md-sys-color-surface-container-highest: #E0E0E9;
-    --md-sys-color-error: #BA1A1A;
-    --md-sys-color-error-container: #FFDAD6;
-    --md-shape-corner-extra-large: 28px;
-    --md-shape-corner-large: 16px;
-    --md-shape-corner-medium: 12px;
-    --md-shape-corner-small: 8px;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; overflow: hidden; }
-  body {
-    font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif;
-    background: var(--md-sys-color-surface);
-    color: var(--md-sys-color-on-surface);
-    display: flex; flex-direction: column;
-    -webkit-font-smoothing: antialiased;
-  }
-  .top-app-bar {
-    background: var(--md-sys-color-surface-container-low);
-    padding: 0 20px; height: 64px;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    flex-shrink: 0;
-  }
-  .app-icon {
-    width: 40px; height: 40px;
-    background: var(--md-sys-color-primary-container);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--md-sys-color-primary); font-size: 22px; flex-shrink: 0;
-  }
-  .app-title {
-    font-family: 'U5Font', 'Google Sans Display', 'Noto Sans SC', sans-serif;
-    font-size: 21px; font-weight: 500; flex: 1;
-  }
-  .version-chip {
-    font-size: 12px; color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface-container);
-    padding: 5px 12px; border-radius: 100px;
-    display: none; align-items: center; gap: 5px; white-space: nowrap;
-  }
-  .version-chip.visible { display: flex; }
-  .version-chip .material-icons-round { font-size: 14px; color: var(--md-sys-color-primary); }
+@font-face{font-family:'U5Font';src:url('U5Font_Round_7744b500.woff2') format('woff2');font-weight:400;font-style:normal;font-display:swap}
 
-  #loading-screen {
-    position: fixed; inset: 0;
-    background: var(--md-sys-color-surface);
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 24px;
-    z-index: 200;
-    transition: opacity .4s ease;
-  }
-  #loading-screen.fade-out { opacity: 0; pointer-events: none; }
-  #loading-screen.fade-out .linear-progress-bar { animation-play-state: paused; }
-  .loading-icon-wrap {
-    width: 80px; height: 80px;
-    background: var(--md-sys-color-primary-container);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--md-sys-color-primary); font-size: 36px;
-    animation: pulse-icon 2s ease-in-out infinite;
-  }
-  @keyframes pulse-icon { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
-  .loading-title { font-size: 18px; font-weight: 500; }
-  .loading-sub   { font-size: 14px; color: var(--md-sys-color-on-surface-variant); }
-  .linear-progress {
-    width: 280px; height: 4px;
-    background: var(--md-sys-color-surface-variant);
-    border-radius: 2px; overflow: hidden;
-  }
-  .linear-progress-bar {
-    height: 100%; background: var(--md-sys-color-primary);
-    border-radius: 2px;
-    animation: indeterminate 2s linear infinite;
-    transform-origin: left center;
-  }
-  @keyframes indeterminate {
-    0%   { transform: translateX(-120%) scaleX(.4); }
-    25%  { transform: translateX(-20%)  scaleX(.5); }
-    50%  { transform: translateX(50%)   scaleX(.5); }
-    75%  { transform: translateX(120%)  scaleX(.4); }
-    100% { transform: translateX(220%)  scaleX(.3); }
-  }
+:root{
+  --md-primary:#415F91;--md-on-primary:#FFFFFF;
+  --md-primary-container:#D6E3FF;--md-on-primary-container:#001B3E;
+  --md-secondary:#565F71;--md-on-secondary:#FFFFFF;
+  --md-secondary-container:#DAE2F9;--md-on-secondary-container:#131C2B;
+  --md-tertiary:#705575;--md-on-tertiary:#FFFFFF;
+  --md-tertiary-container:#FAD8FD;--md-on-tertiary-container:#28122E;
+  --md-background:#F9F9FF;--md-on-background:#191C20;
+  --md-surface:#F9F9FF;--md-on-surface:#191C20;
+  --md-surface-variant:#E0E2EC;--md-on-surface-variant:#43474E;
+  --md-outline:#73777F;--md-outline-variant:#C3C7CF;
+  --md-surface-container-lowest:#FFFFFF;
+  --md-surface-container-low:#F3F3FA;
+  --md-surface-container:#EDEDF4;
+  --md-surface-container-high:#E7E8EE;
+  --md-error:#BA1A1A;--md-on-error:#FFFFFF;
+  --md-error-container:#FFDAD6;--md-on-error-container:#410002;
+  --md-ease-2:cubic-bezier(.2,0,.2,1);
+  --md-motion-3:150ms;--md-motion-4:200ms;--md-motion-5:250ms;--md-motion-6:300ms;
+  --r-xs:4px;--r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:28px;--r-full:50px;
+  font-family:'U5Font','Noto Sans SC',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+[data-theme="dark"]{
+  --md-primary:#AAC7FF;--md-on-primary:#0A305F;
+  --md-primary-container:#284777;--md-on-primary-container:#D6E3FF;
+  --md-secondary:#BBC7DB;--md-on-secondary:#253140;
+  --md-secondary-container:#3C4757;--md-on-secondary-container:#DAE2F9;
+  --md-tertiary:#DDBCE0;--md-on-tertiary:#3F2844;
+  --md-tertiary-container:#573E5C;--md-on-tertiary-container:#FAD8FD;
+  --md-background:#111318;--md-on-background:#E2E2E9;
+  --md-surface:#111318;--md-on-surface:#E2E2E9;
+  --md-surface-variant:#43474E;--md-on-surface-variant:#C3C7CF;
+  --md-outline:#8D9199;--md-outline-variant:#43474E;
+  --md-surface-container-lowest:#0C0E13;
+  --md-surface-container-low:#191C20;
+  --md-surface-container:#1D2024;
+  --md-surface-container-high:#282A2F;
+  --md-error:#FFB4AB;--md-on-error:#690005;
+  --md-error-container:#93000A;--md-on-error-container:#FFDAD6;
+}
 
-  #error-screen {
-    flex: 1; display: none; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 16px; padding: 48px; text-align: center;
-  }
-  .error-icon-wrap {
-    width: 80px; height: 80px;
-    background: var(--md-sys-color-error-container);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--md-sys-color-error); font-size: 36px;
-  }
-  .error-title { font-size: 18px; font-weight: 500; }
-  .error-msg { font-size: 14px; color: var(--md-sys-color-on-surface-variant); max-width: 360px; line-height: 1.6; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:inherit;background:var(--md-background);color:var(--md-on-background);
+  display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;
+  transition:background-color var(--md-motion-5),color var(--md-motion-5);
+}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;border:none;background:none;cursor:pointer;outline:none;position:relative;isolation:isolate}
+button:focus-visible{outline:2px solid var(--md-primary);outline-offset:2px}
+::-webkit-scrollbar{width:8px}
+::-webkit-scrollbar-track{background:var(--md-surface-container-low)}
+::-webkit-scrollbar-thumb{background:var(--md-outline-variant);border-radius:var(--r-full);border:2px solid var(--md-surface-container-low)}
+::-webkit-scrollbar-thumb:hover{background:var(--md-outline)}
+::selection{background:var(--md-primary-container);color:var(--md-on-primary-container)}
 
-  #main-app {
-    flex: 1; min-height: 0; overflow: hidden;
-    display: none; flex-direction: column;
-    padding: 14px 16px; gap: 10px;
-    max-width: 1200px; width: 100%; margin: 0 auto;
-  }
-  #main-app.visible { display: flex; }
+/* ── Ripple ── */
+.ripple-host{position:relative;overflow:hidden}
+.ripple-span{position:absolute;border-radius:50%;transform:scale(0);animation:ripple-anim .55s linear;pointer-events:none;z-index:0;background:var(--md-on-surface);opacity:.1}
+[data-theme="dark"] .ripple-span{opacity:.22}
+@keyframes ripple-anim{to{transform:scale(4);opacity:0}}
 
-  .filter-row {
-    display: flex; gap: 8px; align-items: center;
-    flex-shrink: 0; flex-wrap: wrap;
-  }
-  .segment-group {
-    display: flex;
-    border: 1px solid var(--md-sys-color-outline);
-    border-radius: 100px; overflow: hidden; flex-shrink: 0;
-  }
-  .segment-btn {
-    padding: 8px 20px; font-size: 14px; font-weight: 500; font-family: inherit;
-    border: none; background: transparent; color: var(--md-sys-color-on-surface);
-    cursor: pointer; transition: background .15s;
-    display: flex; align-items: center; gap: 6px;
-  }
-  .segment-btn .material-icons-round { font-size: 18px; }
-  .segment-btn.active { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
-  .segment-btn:hover:not(.active) { background: var(--md-sys-color-surface-container); }
+/* ── Top App Bar ── */
+.top-app-bar{
+  flex-shrink:0;height:64px;
+  background:var(--md-surface-container-low);
+  border-bottom:1px solid var(--md-outline-variant);
+  display:flex;align-items:center;padding:0 8px 0 16px;gap:12px;
+  z-index:100;
+}
+.app-icon{
+  width:40px;height:40px;border-radius:50%;flex-shrink:0;
+  background:var(--md-primary-container);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--md-primary);font-size:22px;
+}
+.app-title{
+  font-family:'U5Font','Noto Sans SC',sans-serif;
+  font-size:20px;font-weight:400;color:var(--md-on-surface);flex:1
+}
+.version-chip{
+  display:none;align-items:center;gap:6px;
+  background:var(--md-surface-container);
+  color:var(--md-on-surface-variant);
+  font-size:12px;padding:5px 12px;border-radius:var(--r-full);
+  white-space:nowrap;border:1px solid var(--md-outline-variant)
+}
+.version-chip.visible{display:flex}
+.version-chip .material-icons-round{font-size:14px;color:var(--md-primary)}
+.icon-btn{
+  width:44px;height:44px;border-radius:var(--r-full);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:background var(--md-motion-3) var(--md-ease-2);
+  color:var(--md-on-surface-variant);border:none;
+}
+.icon-btn:hover{background:var(--md-surface-container-high)}
+.icon-btn .material-icons-round{font-size:22px}
 
-  .search-bar {
-    flex: 1; min-width: 180px; max-width: 420px;
-    display: flex; align-items: center; gap: 8px;
-    background: var(--md-sys-color-surface-container-highest);
-    border-radius: 100px; padding: 0 16px; height: 40px;
-    outline: 1.5px solid transparent; transition: outline .15s, background .15s;
-  }
-  .search-bar:focus-within { outline-color: var(--md-sys-color-primary); background: var(--md-sys-color-surface-container-lowest); }
-  .search-bar .material-icons-round { font-size: 20px; color: var(--md-sys-color-on-surface-variant); flex-shrink: 0; }
-  .search-bar input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; font-family: inherit; color: var(--md-sys-color-on-surface); }
-  .search-bar input::placeholder { color: var(--md-sys-color-on-surface-variant); }
-  .search-clear { display: none; background: none; border: none; cursor: pointer; color: var(--md-sys-color-on-surface-variant); padding: 2px; border-radius: 50%; flex-shrink: 0; }
-  .search-clear .material-icons-round { font-size: 18px; }
-  .count-label { font-size: 12px; color: var(--md-sys-color-on-surface-variant); white-space: nowrap; }
+/* ── Loading ── */
+#loading-screen{
+  position:fixed;inset:64px 0 0 0;z-index:50;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:24px;
+  background:var(--md-background);
+  transition:opacity var(--md-motion-6);
+}
+#loading-screen.fade-out{opacity:0;pointer-events:none}
+.loading-icon{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--md-primary-container);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--md-primary);font-size:36px;
+  animation:pulse .2s var(--md-ease-2) infinite alternate;
+}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.07)}}
+.loading-title{font-size:18px;font-weight:400;color:var(--md-on-surface)}
+.loading-sub{font-size:14px;color:var(--md-on-surface-variant)}
+.linear-progress{width:280px;height:4px;background:var(--md-outline-variant);border-radius:2px;overflow:hidden}
+.linear-progress-bar{
+  height:100%;background:var(--md-primary);border-radius:2px;
+  animation:indeterminate 1.8s linear infinite;transform-origin:left center
+}
+@keyframes indeterminate{
+  0%{transform:translateX(-120%) scaleX(.4)}
+  25%{transform:translateX(-20%) scaleX(.5)}
+  50%{transform:translateX(50%) scaleX(.5)}
+  75%{transform:translateX(120%) scaleX(.4)}
+  100%{transform:translateX(220%) scaleX(.3)}
+}
 
-  .list-card {
-    background: var(--md-sys-color-surface-container-lowest);
-    border-radius: var(--md-shape-corner-large);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    overflow: hidden; flex: 1; min-height: 0;
-    display: flex; flex-direction: column;
-  }
-  .list-header {
-    display: grid; grid-template-columns: 1fr 130px;
-    padding: 10px 16px; font-size: 12px; font-weight: 500;
-    color: var(--md-sys-color-on-surface-variant);
-    background: var(--md-sys-color-surface-container-low);
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
-    flex-shrink: 0; user-select: none;
-  }
-  .col-sort { display: flex; align-items: center; gap: 3px; cursor: pointer; }
-  .col-sort .material-icons-round { font-size: 14px; opacity: 0; transition: opacity .15s; }
-  .col-sort .material-icons-round.visible { opacity: 1; }
-  .col-right { text-align: right; justify-content: flex-end; }
-  .list-body { flex: 1; overflow-y: auto; min-height: 0; scroll-padding-bottom: 8px; padding-bottom: 8px; }
+/* ── Error ── */
+#error-screen{
+  position:fixed;inset:64px 0 0 0;z-index:50;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:16px;padding:48px;text-align:center;
+  background:var(--md-background);
+}
+.error-icon{
+  width:80px;height:80px;border-radius:50%;
+  background:var(--md-error-container);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--md-on-error-container);font-size:36px
+}
+.error-title{font-size:18px;font-weight:500;color:var(--md-on-surface)}
+.error-msg{font-size:14px;color:var(--md-on-surface-variant);max-width:360px;line-height:1.6;white-space:pre-wrap}
 
-  .file-row {
-    display: grid; grid-template-columns: 1fr 130px;
-    padding: 13px 18px; font-size: 14px; cursor: pointer;
-    align-items: center;
-    border-bottom: 1px solid var(--md-sys-color-surface-container);
-    transition: background .1s;
-  }
-  .file-row:last-child { border-bottom: none; }
-  .file-row:hover    { background: var(--md-sys-color-surface-container-low); }
-  .file-row.selected { background: var(--md-sys-color-primary-container); }
-  .file-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-right: 12px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; }
-  .file-size { color: var(--md-sys-color-on-surface-variant); text-align: right; }
-  .file-row.no-dl .file-name { color: var(--md-sys-color-on-surface-variant); opacity: .55; }
-  .file-row.no-dl .file-size { opacity: .45; }
+/* ── Skeleton ── */
+@keyframes shimmer{
+  0%{background-position:-600px 0}
+  100%{background-position:600px 0}
+}
+.skeleton-row{
+  display:grid;grid-template-columns:1fr 100px;
+  padding:14px 20px;border-bottom:1px solid color-mix(in srgb,var(--md-outline-variant) 50%,transparent);
+  gap:12px;align-items:center;
+}
+.skeleton-bar{
+  height:13px;border-radius:var(--r-full);
+  background:linear-gradient(90deg,var(--md-surface-container) 25%,var(--md-surface-container-high) 50%,var(--md-surface-container) 75%);
+  background-size:600px 100%;
+  animation:shimmer 1.4s infinite linear;
+}
+.skeleton-bar.short{width:70px;margin-left:auto}
 
-  .empty-state {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    gap: 12px; padding: 64px 32px;
-    color: var(--md-sys-color-on-surface-variant);
-  }
-  .empty-state .material-icons-round { font-size: 48px; opacity: .35; }
-  .empty-state p { font-size: 14px; }
+/* ── Main App always visible shell ── */
+#main-app{
+  flex:1;min-height:0;overflow:hidden;
+  display:flex;flex-direction:column;gap:12px;
+  padding:16px;max-width:1200px;width:100%;margin:0 auto
+}
 
-  .detail-card {
-    background: var(--md-sys-color-surface-container-lowest);
-    border-radius: var(--md-shape-corner-large);
-    border: 1px solid var(--md-sys-color-outline-variant);
-    padding: 14px 18px; display: flex; align-items: center; gap: 14px; flex-shrink: 0;
-  }
-  .detail-icon {
-    width: 44px; height: 44px; background: var(--md-sys-color-surface-container);
-    border-radius: var(--md-shape-corner-medium);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--md-sys-color-on-surface-variant); font-size: 22px;
-    flex-shrink: 0; transition: background .2s, color .2s;
-  }
-  .detail-icon.has-file { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-primary); }
-  .detail-text { flex: 1; min-width: 0; }
-  .detail-name { font-size: 14px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; }
-  .detail-meta { font-size: 12px; color: var(--md-sys-color-on-surface-variant); }
-  .detail-actions { display: flex; gap: 8px; flex-shrink: 0; }
+/* ── Filter Row ── */
+.filter-row{display:flex;gap:10px;align-items:center;flex-shrink:0;flex-wrap:wrap}
 
-  .btn-filled {
-    display: flex; align-items: center; gap: 6px; padding: 10px 20px;
-    background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary);
-    border: none; border-radius: 100px; font-size: 14px; font-weight: 500; font-family: inherit;
-    cursor: pointer; transition: filter .15s, opacity .25s;
-  }
-  .btn-filled:hover { filter: brightness(1.1); }
-  .btn-filled:disabled { opacity: .38; cursor: not-allowed; filter: none; }
-  .btn-filled .material-icons-round { font-size: 18px; }
-  .btn-tonal {
-    display: flex; align-items: center; gap: 6px; padding: 10px 20px;
-    background: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container);
-    border: none; border-radius: 100px; font-size: 14px; font-weight: 500; font-family: inherit;
-    cursor: pointer; transition: filter .15s, opacity .25s;
-  }
-  .btn-tonal:hover { filter: brightness(.95); }
-  .btn-tonal:disabled { opacity: .38; cursor: not-allowed; filter: none; }
-  .btn-tonal .material-icons-round { font-size: 18px; }
+/* Segmented button */
+.segment-group{
+  display:flex;background:var(--md-surface-container);
+  border-radius:var(--r-full);border:1px solid var(--md-outline-variant);
+  overflow:hidden;flex-shrink:0
+}
+.segment-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 20px;font-size:14px;font-weight:400;
+  color:var(--md-on-surface-variant);
+  transition:background var(--md-motion-3) var(--md-ease-2),color var(--md-motion-3);
+  border-radius:0;border:none;
+}
+.segment-btn .material-icons-round{font-size:18px}
+.segment-btn.active{background:var(--md-secondary-container);color:var(--md-on-secondary-container);font-weight:500;cursor:default}
+.segment-btn:hover:not(.active){background:var(--md-surface-container-high);color:var(--md-on-surface)}
 
-  .dialog-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,.38);
-    display: none; align-items: center; justify-content: center; z-index: 300;
-  }
-  .dialog-overlay.open    { display: flex; animation: overlayIn  .18s forwards; }
-  .dialog-overlay.closing { display: flex; animation: overlayOut .2s  forwards; }
-  @keyframes overlayIn  { from{opacity:0} to{opacity:1} }
-  @keyframes overlayOut { from{opacity:1} to{opacity:0} }
-  .dialog {
-    background: var(--md-sys-color-surface-container-lowest);
-    border-radius: var(--md-shape-corner-extra-large);
-    padding: 24px; width: 90%; max-width: 520px; max-height: 80vh;
-    display: flex; flex-direction: column;
-    box-shadow: 0 8px 24px rgba(0,0,0,.18);
-  }
-  .dialog-overlay.open    .dialog { animation: slideUp   .22s ease-out forwards; }
-  .dialog-overlay.closing .dialog { animation: slideDown .2s  ease-in  forwards; }
-  @keyframes slideUp   { from{transform:translateY(16px);opacity:.5} to{transform:translateY(0);opacity:1} }
-  @keyframes slideDown { from{transform:translateY(0);opacity:1} to{transform:translateY(20px);opacity:0} }
-  .dialog-icon { width: 48px; height: 48px; background: var(--md-sys-color-primary-container); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--md-sys-color-primary); font-size: 24px; margin-bottom: 16px; }
-  .dialog-title { font-size: 18px; font-weight: 500; margin-bottom: 8px; }
-  .dialog-body { font-size: 14px; color: var(--md-sys-color-on-surface-variant); line-height: 1.6; flex: 1; overflow-y: auto; margin-bottom: 16px; }
-  .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+/* Search */
+.search-bar{
+  flex:1;min-width:160px;max-width:400px;height:44px;
+  display:flex;align-items:center;gap:8px;
+  background:var(--md-surface-container);
+  border-radius:var(--r-full);padding:0 16px;
+  border:1.5px solid var(--md-outline-variant);
+  transition:border-color var(--md-motion-3),background var(--md-motion-3)
+}
+.search-bar:focus-within{border-color:var(--md-primary);background:var(--md-surface-container-lowest)}
+.search-bar .material-icons-round{font-size:20px;color:var(--md-on-surface-variant);flex-shrink:0}
+.search-bar input{
+  flex:1;border:none;background:transparent;outline:none;
+  font-size:14px;font-family:inherit;color:var(--md-on-surface)
+}
+.search-bar input::placeholder{color:var(--md-on-surface-variant)}
+.search-clear{
+  display:none;background:none;border:none;cursor:pointer;
+  color:var(--md-on-surface-variant);padding:2px;border-radius:50%;flex-shrink:0;
+  transition:color var(--md-motion-3)
+}
+.search-clear:hover{color:var(--md-on-surface)}
+.search-clear .material-icons-round{font-size:18px}
+.count-label{font-size:12px;color:var(--md-on-surface-variant);white-space:nowrap;padding:0 4px}
 
-  .info-grid { display: grid; grid-template-columns: 76px 1fr; gap: 12px; align-items: start; }
-  .info-label { font-size: 12px; font-weight: 600; color: var(--md-sys-color-on-surface-variant); padding-top: 8px; }
-  .info-value { font-size: 13px; background: var(--md-sys-color-surface-container); border-radius: var(--md-shape-corner-small); padding: 6px 10px; font-family: 'U5Font', 'Google Sans', 'Noto Sans SC', sans-serif; display: flex; align-items: center; justify-content: space-between; gap: 8px; word-break: break-all; }
-  .copy-btn { background: none; border: none; cursor: pointer; color: var(--md-sys-color-primary); flex-shrink: 0; display: flex; align-items: center; justify-content: center; align-self: center; padding: 2px; transition: opacity .15s; }
-  .copy-btn:hover { opacity: .7; }
-  .copy-btn .material-icons-round { font-size: 16px; }
+/* ── List Card ── */
+.list-card{
+  flex:1;min-height:0;
+  background:var(--md-surface-container-lowest);
+  border:1px solid var(--md-outline-variant);
+  border-radius:var(--r-xl);
+  overflow:hidden;display:flex;flex-direction:column;
+  box-shadow:0 2px 8px rgba(0,0,0,.06)
+}
+.list-header{
+  display:grid;grid-template-columns:1fr 120px;
+  padding:10px 20px;font-size:12px;font-weight:500;
+  color:var(--md-on-surface-variant);
+  background:var(--md-surface-container-low);
+  border-bottom:1px solid var(--md-outline-variant);
+  flex-shrink:0
+}
+.col-sort{display:flex;align-items:center;gap:4px;cursor:pointer;user-select:none;transition:color var(--md-motion-3)}
+.col-sort:hover{color:var(--md-primary)}
+.col-sort .material-icons-round{font-size:14px;opacity:0;transition:opacity var(--md-motion-3)}
+.col-sort .material-icons-round.visible{opacity:1}
+.col-right{text-align:right;justify-content:flex-end}
+.list-body{flex:1;overflow-y:auto;min-height:0}
 
-  #snackbar {
-    position: fixed; bottom: 24px; left: 50%;
-    background: #1A1C27; color: #F8F9FF;
-    padding: 12px 20px; border-radius: 12px;
-    font-size: 14px; z-index: 500; pointer-events: none;
-    display: flex; align-items: center; gap: 8px; white-space: nowrap;
-    box-shadow: 0 4px 16px rgba(0,0,0,.28);
-    opacity: 0; visibility: hidden;
-    transform: translateX(-50%) translateY(80px);
-  }
-  #snackbar.show {
-    visibility: visible;
-    animation: snackIn .35s cubic-bezier(.34,1.56,.64,1) forwards;
-  }
-  #snackbar.hide {
-    visibility: visible;
-    animation: snackOut .3s ease-in forwards;
-  }
-  @keyframes snackIn {
-    from { transform: translateX(-50%) translateY(80px); opacity: 0; }
-    to   { transform: translateX(-50%) translateY(0);    opacity: 1; }
-  }
-  @keyframes snackOut {
-    from { transform: translateX(-50%) translateY(0);    opacity: 1; }
-    to   { transform: translateX(-50%) translateY(80px); opacity: 0; }
-  }
-  #snackbar .material-icons-round { font-size: 18px; color: #A8C7FA; }
+.file-row{
+  display:grid;grid-template-columns:1fr 120px;
+  padding:12px 20px;font-size:14px;cursor:pointer;align-items:center;
+  border-bottom:1px solid color-mix(in srgb,var(--md-outline-variant) 50%,transparent);
+  transition:background var(--md-motion-3) var(--md-ease-2);
+  position:relative;isolation:isolate;
+}
+.file-row:last-child{border-bottom:none}
+.file-row:hover{background:var(--md-surface-container-low)}
+.file-row.selected{background:var(--md-primary-container)}
+.file-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:12px;font-family:'U5Font','Noto Sans SC',sans-serif}
+.file-size{color:var(--md-on-surface-variant);text-align:right;font-size:13px}
+.file-row.no-dl .file-name{color:var(--md-on-surface-variant);opacity:.5}
+.file-row.no-dl .file-size{opacity:.4}
 
-  @media (max-width: 600px) {
-    .app-title { font-size: 17px; }
-    #main-app { padding: 10px; gap: 8px; }
-    .detail-actions { flex-direction: column; }
-  }
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:64px 32px;color:var(--md-on-surface-variant)
+}
+.empty-state .material-icons-round{font-size:52px;opacity:.3}
+.empty-state p{font-size:14px}
+
+/* ── Detail Card ── */
+.detail-card{
+  flex-shrink:0;
+  background:var(--md-surface-container-lowest);
+  border:1px solid var(--md-outline-variant);
+  border-radius:var(--r-xl);
+  padding:14px 20px;
+  display:flex;align-items:center;gap:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.06)
+}
+.detail-icon{
+  width:48px;height:48px;border-radius:var(--r-lg);
+  background:var(--md-surface-container);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--md-on-surface-variant);font-size:24px;flex-shrink:0;
+  transition:background var(--md-motion-4),color var(--md-motion-4)
+}
+.detail-icon.has-file{background:var(--md-primary-container);color:var(--md-primary)}
+.detail-text{flex:1;min-width:0}
+.detail-name{
+  font-size:14px;font-weight:500;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  margin-bottom:3px;font-family:'U5Font','Noto Sans SC',sans-serif
+}
+.detail-meta{font-size:12px;color:var(--md-on-surface-variant)}
+.detail-actions{display:flex;gap:8px;flex-shrink:0}
+
+/* ── Buttons ── */
+.btn-filled{
+  display:flex;align-items:center;gap:6px;padding:10px 20px;
+  background:var(--md-primary);color:var(--md-on-primary);
+  border-radius:var(--r-full);font-size:14px;font-weight:500;
+  transition:filter var(--md-motion-3),opacity var(--md-motion-4);
+}
+.btn-filled:hover{filter:brightness(1.1)}
+.btn-filled:disabled{opacity:.38;cursor:not-allowed;filter:none}
+.btn-filled .material-icons-round{font-size:18px}
+.btn-tonal{
+  display:flex;align-items:center;gap:6px;padding:10px 20px;
+  background:var(--md-secondary-container);color:var(--md-on-secondary-container);
+  border-radius:var(--r-full);font-size:14px;font-weight:500;
+  transition:filter var(--md-motion-3),opacity var(--md-motion-4)
+}
+.btn-tonal:hover{filter:brightness(.94)}
+.btn-tonal:disabled{opacity:.38;cursor:not-allowed;filter:none}
+.btn-tonal .material-icons-round{font-size:18px}
+
+/* ── Info Dialog ── */
+.dialog-overlay{
+  position:fixed;inset:0;background:var(--md-scrim,rgba(0,0,0,.38));
+  display:none;align-items:center;justify-content:center;z-index:500;
+  animation:none
+}
+.dialog-overlay.open{display:flex;animation:fadeIn .2s var(--md-ease-2) forwards}
+.dialog-overlay.closing{display:flex;animation:fadeOut .2s var(--md-ease-2) forwards}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeOut{from{opacity:1}to{opacity:0}}
+.dialog{
+  background:var(--md-surface-container-high);
+  border-radius:var(--r-xl);padding:24px;
+  width:90%;max-width:520px;max-height:82vh;
+  display:flex;flex-direction:column;
+  box-shadow:0 8px 32px rgba(0,0,0,.2);
+}
+.dialog-overlay.open .dialog{animation:slideUp .22s var(--md-ease-2) forwards}
+.dialog-overlay.closing .dialog{animation:slideDown .2s var(--md-ease-2) forwards}
+@keyframes slideUp{from{transform:translateY(16px);opacity:.4}to{transform:translateY(0);opacity:1}}
+@keyframes slideDown{from{transform:translateY(0);opacity:1}to{transform:translateY(20px);opacity:0}}
+.dialog-icon{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--md-primary-container);
+  display:flex;align-items:center;justify-content:center;
+  color:var(--md-primary);font-size:24px;margin-bottom:16px
+}
+.dialog-title{font-size:20px;font-weight:500;margin-bottom:12px;color:var(--md-on-surface)}
+.dialog-body{flex:1;overflow-y:auto;margin-bottom:20px}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px}
+
+.info-grid{display:grid;grid-template-columns:76px 1fr;gap:10px;align-items:start}
+.info-label{font-size:12px;font-weight:600;color:var(--md-on-surface-variant);padding-top:8px}
+.info-value{
+  font-size:13px;background:var(--md-surface-container);
+  border-radius:var(--r-sm);padding:6px 10px;
+  font-family:'U5Font','Noto Sans SC',sans-serif;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;word-break:break-all
+}
+.copy-btn{
+  background:none;border:none;cursor:pointer;
+  color:var(--md-primary);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;align-self:center;
+  padding:3px;border-radius:var(--r-sm);
+  transition:background var(--md-motion-3),opacity var(--md-motion-3)
+}
+.copy-btn:hover{background:var(--md-primary-container);opacity:.8}
+.copy-btn .material-icons-round{font-size:16px}
+
+/* ── Snackbar ── */
+#snackbar{
+  position:fixed;bottom:24px;left:50%;
+  background:#1b1b1f;color:#e6e1e5;
+  padding:12px 20px;border-radius:var(--r-lg);
+  font-size:14px;z-index:600;pointer-events:none;
+  display:flex;align-items:center;gap:8px;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+  opacity:0;visibility:hidden;
+  transform:translateX(-50%) translateY(80px)
+}
+[data-theme="dark"] #snackbar{background:#e6e1e5;color:#1b1b1f}
+#snackbar.show{visibility:visible;animation:snkIn .35s cubic-bezier(.34,1.56,.64,1) forwards}
+#snackbar.hide{visibility:visible;animation:snkOut .28s ease-in forwards}
+@keyframes snkIn{from{transform:translateX(-50%) translateY(80px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
+@keyframes snkOut{from{transform:translateX(-50%) translateY(0);opacity:1}to{transform:translateX(-50%) translateY(80px);opacity:0}}
+#snackbar .material-icons-round{font-size:18px;color:var(--md-primary)}
+
+/* ── Mobile ── */
+@media(max-width:600px){
+  .app-title{font-size:17px}
+  #main-app{padding:10px;gap:8px}
+  .detail-actions{flex-direction:column}
+  .detail-card{flex-wrap:wrap}
+  #snackbar{bottom:16px;left:10vw;right:10vw;max-width:80vw;white-space:normal;text-align:left;transform:translateY(80px)}
+  @keyframes snkIn{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes snkOut{from{transform:translateY(0);opacity:1}to{transform:translateY(80px);opacity:0}}
+}
 </style>
 </head>
 <body>
@@ -330,10 +412,16 @@
     <span class="material-icons-round">schedule</span>
     <span id="version-text">—</span>
   </div>
+  <a href="https://e-xq.github.io/" class="icon-btn ripple-host" title="返回主页">
+    <span class="material-icons-round">home</span>
+  </a>
+  <button class="icon-btn ripple-host" onclick="toggleTheme()" title="切换主题" id="theme-btn">
+    <span class="material-icons-round" id="theme-icon">dark_mode</span>
+  </button>
 </header>
 
 <div id="loading-screen">
-  <div class="loading-icon-wrap">
+  <div class="loading-icon">
     <svg xmlns="http://www.w3.org/2000/svg" height="40" width="40" viewBox="0 0 24 24" fill="currentColor">
       <path d="M17 12l-5 5-5-5 1.41-1.41L11 13.17V6h2v7.17l2.59-2.58L17 12zM5 18h14v2H5v-2z"/>
     </svg>
@@ -344,10 +432,10 @@
 </div>
 
 <div id="error-screen">
-  <div class="error-icon-wrap"><span class="material-icons-round">wifi_off</span></div>
+  <div class="error-icon"><span class="material-icons-round">wifi_off</span></div>
   <div class="error-title">加载失败</div>
   <p class="error-msg" id="error-msg">无法获取资源索引，请检查网络连接后重试。</p>
-  <button class="btn-filled" onclick="init()" style="margin-top:8px">
+  <button class="btn-filled ripple-host" onclick="init()" style="margin-top:8px">
     <span class="material-icons-round">refresh</span>重新加载
   </button>
 </div>
@@ -355,16 +443,16 @@
 <div id="main-app">
   <div class="filter-row">
     <div class="segment-group">
-      <button class="segment-btn active" id="btn-npk" onclick="setCategory('NPK')">
+      <button class="segment-btn active ripple-host" id="btn-npk" onclick="setCategory('NPK')">
         <span class="material-icons-round">inventory_2</span>NPK
       </button>
-      <button class="segment-btn" id="btn-ppk" onclick="setCategory('PPK')">
+      <button class="segment-btn ripple-host" id="btn-ppk" onclick="setCategory('PPK')">
         <span class="material-icons-round">folder_zip</span>PPK
       </button>
     </div>
     <div class="search-bar">
       <span class="material-icons-round">search</span>
-      <input type="text" id="search-input" placeholder="搜索文件名..." oninput="onSearch()">
+      <input type="text" id="search-input" placeholder="搜索文件名..." oninput="onSearch()" autocomplete="off">
       <button class="search-clear" id="search-clear" onclick="clearSearch()">
         <span class="material-icons-round">close</span>
       </button>
@@ -382,9 +470,25 @@
       </div>
     </div>
     <div class="list-body" id="list-body">
-      <div class="empty-state">
-        <span class="material-icons-round">hourglass_empty</span>
-        <p>等待加载...</p>
+      <div id="skeleton-list">
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:62%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:48%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:75%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:55%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:82%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:43%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:67%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:58%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:71%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:50%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:88%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:39%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:64%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:77%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:53%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:69%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:46%"></div><div class="skeleton-bar short"></div></div>
+        <div class="skeleton-row"><div class="skeleton-bar" style="width:80%"></div><div class="skeleton-bar short"></div></div>
       </div>
     </div>
   </div>
@@ -396,10 +500,10 @@
       <div class="detail-meta" id="detail-meta"></div>
     </div>
     <div class="detail-actions">
-      <button class="btn-tonal" id="btn-info" onclick="openInfoDialog()" disabled>
+      <button class="btn-tonal ripple-host" id="btn-info" onclick="openInfoDialog()" disabled>
         <span class="material-icons-round">info</span>文件信息
       </button>
-      <button class="btn-filled" id="btn-open" onclick="openFile()" disabled>
+      <button class="btn-filled ripple-host" id="btn-open" onclick="openFile()" disabled>
         <span class="material-icons-round">open_in_new</span>下载
       </button>
     </div>
@@ -412,7 +516,7 @@
     <div class="dialog-title">文件信息</div>
     <div class="dialog-body"><div class="info-grid" id="info-grid"></div></div>
     <div class="dialog-actions">
-      <button class="btn-filled" onclick="closeInfoDialog()">
+      <button class="btn-filled ripple-host" onclick="closeInfoDialog()">
         <span class="material-icons-round">close</span>关闭
       </button>
     </div>
@@ -422,47 +526,58 @@
 <div id="snackbar"><span class="material-icons-round">check_circle</span><span id="snackbar-text"></span></div>
 
 <script>
+// ── Theme ──
+(function(){
+  const saved=localStorage.getItem('ef-theme')||'light';
+  if(saved==='dark')document.documentElement.setAttribute('data-theme','dark');
+})();
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.documentElement.setAttribute('data-theme',isDark?'light':'dark');
+  localStorage.setItem('ef-theme',isDark?'light':'dark');
+  document.getElementById('theme-icon').textContent=isDark?'dark_mode':'light_mode';
+}
+(function(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  document.getElementById('theme-icon').textContent=isDark?'light_mode':'dark_mode';
+})();
+
+// ── Ripple ──
+document.addEventListener('pointerdown',e=>{
+  const host=e.target.closest('.ripple-host');
+  if(!host)return;
+  const r=document.createElement('span');
+  r.className='ripple-span';
+  const rect=host.getBoundingClientRect();
+  const size=Math.max(rect.width,rect.height)*2;
+  r.style.cssText=`width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  host.appendChild(r);
+  r.addEventListener('animationend',()=>r.remove());
+});
+
 const INDEX_URL = "https://u5.update.netease.com/pl/npk_version_android.txt";
 const SERVER    = "https://u5-06.gph.netease.com";
-const SKIP_KEYS = new Set(); // 不过滤任何文件
-
-// 这些文件属于 PPK 类型，使用 patch_ 路径
-const PATCH_KEYS = new Set(["npkext_file_info","npkext_file_full_info","npkext_file_info_muti","npkext_file_info_new","npk_full_info_bin"]);
-
-// 屏蔽不显示的文件
-const BLOCK_FILES = new Set(["assets.ppk","assets_d.ppk"]);
-// 屏蔽前缀（无效资源，不显示）
+const BLOCK_FILES  = new Set(["assets.ppk","assets_d.ppk"]);
 const BLOCK_PREFIX = ["sub_editor_props."];
-// 显示但不提供下载的文件（原来被过滤的）
-const NO_DL_KEYS = new Set();
+// PPK 中无下载的文件（空集，全部可下载）
+const BLOCK_PPK    = new Set();
 
-let indexData=null,version="",allItems=[],filteredItems=[],currentItem=null;
+let indexData=null,patchVer="",npkextVer="",allItems=[],filteredItems=[],currentItem=null;
 let sortCol="name",sortAsc=true,category="NPK";
 
-const ASSETS_PPK=new Set(["assets_d.ppk","assets_d.ppk.map","assets_file_storage","assets.ppk","assets.ppk.map"]);
-
-function getPatchVersion(ver){
-  return ver.replace(/^npkext_/,"patch_");
+function getPpkextSubdir(fname){
+  const prefixes=["sub_skin_voice","sub_sky_box","sub_sound","sub_skin","sub_pet","sub_part","sub_emoji","sub_editor"];
+  for(const p of prefixes){if(fname.startsWith(p))return p;}
+  return "";
 }
-function getSubdir(f){
-  if(f.startsWith("sub_skin_voice"))return"sub_skin_voice";
-  if(f.startsWith("sub_sky_box"))return"sub_sky_box";
-  if(f.startsWith("sub_sound"))return"sub_sound";
-  if(f.startsWith("sub_skin"))return"sub_skin";
-  if(f.startsWith("sub_pet"))return"sub_pet";
-  if(f.startsWith("sub_part"))return"sub_part";
-  if(f.startsWith("sub_emoji"))return"sub_emoji";
-  if(f.startsWith("sub_editor"))return"__patch__";
-  return"";
-}
-function buildUrl(ver,fname){
-  // patch 路径：包含 script 的文件、PATCH_KEYS、sub_editor、assets ppk/map
-  if(fname.includes("script")) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
-  if(PATCH_KEYS.has(fname)) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
-  if(ASSETS_PPK.has(fname)) return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
-  const sub=getSubdir(fname);
-  if(sub==="__patch__")return`${SERVER}/${getPatchVersion(ver)}/${fname}`;
-  return sub?`${SERVER}/${ver}/${sub}/${fname}`:`${SERVER}/${ver}/${fname}`;
+function buildUrl(section,fname){
+  if(section==="npkext") return`${SERVER}/${npkextVer}/${fname}`;
+  if(section==="ppkext"){
+    const sub=getPpkextSubdir(fname);
+    return sub?`${SERVER}/${npkextVer}/${sub}/${fname}`:`${SERVER}/${npkextVer}/${fname}`;
+  }
+  if(section==="ppk") return`${SERVER}/${patchVer}/${fname}`;
+  return`${SERVER}/${patchVer}/${fname}`;
 }
 function fmtSize(s){
   if(s>=1<<30)return(s/(1<<30)).toFixed(2)+" GB";
@@ -473,41 +588,35 @@ function fmtSize(s){
 function parseVersion(v){
   const m=v.match(/_(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})?_/);
   if(!m)return v;
-  let h=parseInt(m[4],10);
-  const ampm=h>=12?"PM":"AM";
-  h=h%12||12;
+  let h=parseInt(m[4],10);const ampm=h>=12?"PM":"AM";h=h%12||12;
   const mm=m[5],ss=m[6]||"00";
   return`${m[1]}-${m[2]}-${m[3]} ${String(h).padStart(2,"0")}:${mm}:${ss} ${ampm}`;
 }
 
 let isLoading=false;
 async function init(){
-  if(isLoading)return;
-  isLoading=true;
-  showLoading();
+  if(isLoading)return;isLoading=true;showLoading();
   try{
     const resp=await fetch(INDEX_URL+"?t="+Date.now());
+    if(!resp.ok)throw new Error("HTTP "+resp.status);
     indexData=await resp.json();
-    version=indexData.npkext_version||"";
+    patchVer=indexData.version||"";
+    npkextVer=indexData.npkext_version||patchVer;
   }catch(e){
-    isLoading=false;
-    showError("无法获取资源索引，请检查网络连接后重试。\n("+e.message+")");
-    return;
+    isLoading=false;showError("无法获取资源索引，请检查网络连接后重试。\n("+e.message+")");return;
   }
   isLoading=false;
-  if(version){
-    document.getElementById("version-text").textContent=parseVersion(version);
+  if(patchVer){
+    document.getElementById("version-text").textContent=parseVersion(patchVer);
     document.getElementById("version-chip").classList.add("visible");
   }
-  showMain();
-  refreshList();
+  showMain();refreshList();
 }
 
 function showLoading(){
   const ls=document.getElementById("loading-screen");
   ls.style.display="flex";ls.classList.remove("fade-out");
   document.getElementById("error-screen").style.display="none";
-  document.getElementById("main-app").classList.remove("visible");
   document.getElementById("version-chip").classList.remove("visible");
 }
 function showError(msg){
@@ -522,50 +631,30 @@ function showMain(){
   ls.addEventListener("transitionend",done,{once:true});
   setTimeout(done,600);
   document.getElementById("error-screen").style.display="none";
-  document.getElementById("main-app").classList.add("visible");
 }
 
 let categoryTimer;
 function setCategory(cat){
+  if(cat===category)return;
   document.getElementById("btn-npk").classList.toggle("active",cat==="NPK");
   document.getElementById("btn-ppk").classList.toggle("active",cat==="PPK");
   clearTimeout(categoryTimer);
-  categoryTimer=setTimeout(()=>{
-    category=cat;
-    clearCurrentItem();
-    refreshList();
-  },80);
+  categoryTimer=setTimeout(()=>{category=cat;clearCurrentItem();refreshList();},80);
 }
 
 function parseItems(cat){
-  const secs=cat==="NPK"?["npk","npkext","extra_npk","script_patch_npk"]:["ppk","ppkext"];
+  const sections=cat==="NPK"?["npk","npkext","script_patch_npk","extra_npk"]:["ppk","ppkext"];
   const items=[];
-  for(const sec of secs){
+  for(const sec of sections){
     const d=indexData[sec];
     if(!d||typeof d!=="object")continue;
     for(const[fname,info]of Object.entries(d)){
-      if(PATCH_KEYS.has(fname)){if(cat!=="PPK")continue;}
       if(!Array.isArray(info)||info.length<2)continue;
       const[size,md5]=info;
       if(typeof size!=="number"||typeof md5!=="string")continue;
-      // BLOCK_FILES 和 BLOCK_PREFIX 文件显示但不提供下载链接
-      const noDl=BLOCK_FILES.has(fname)||BLOCK_PREFIX.some(p=>fname.startsWith(p));
-      const url=noDl?null:buildUrl(version,fname);
-      items.push({name:fname,size,md5,url});
-    }
-  }
-  // PPK 类额外注入 PATCH_KEYS（来自 npkext section）
-  if(cat==="PPK"){
-    const npkext=indexData["npkext"];
-    if(npkext&&typeof npkext==="object"){
-      for(const[fname,info]of Object.entries(npkext)){
-        if(!PATCH_KEYS.has(fname))continue;
-        if(!Array.isArray(info)||info.length<2)continue;
-        const[size,md5]=info;
-        if(typeof size!=="number"||typeof md5!=="string")continue;
-        const url=buildUrl(version,fname);
-        items.push({name:fname,size,md5,url});
-      }
+      const noDl=BLOCK_FILES.has(fname)||BLOCK_PREFIX.some(p=>fname.startsWith(p))||(cat==="PPK"&&BLOCK_PPK.has(fname));
+      const url=noDl?null:buildUrl(sec,fname);
+      items.push({name:fname,size,md5,url,section:sec});
     }
   }
   return items;
@@ -574,17 +663,14 @@ function parseItems(cat){
 function refreshList(){
   allItems=parseItems(category);
   sortCol="name";sortAsc=true;setSortIcons();
-  // 保留搜索词，不清空
   applyFilter();
 }
-
 function applyFilter(){
   const kw=document.getElementById("search-input").value.trim().toLowerCase();
   let items=kw?allItems.filter(i=>i.name.toLowerCase().includes(kw)):[...allItems];
   if(sortCol==="name")items.sort((a,b)=>(sortAsc?1:-1)*a.name.localeCompare(b.name));
   else items.sort((a,b)=>(sortAsc?1:-1)*(a.size-b.size));
-  filteredItems=items;
-  renderList();
+  filteredItems=items;renderList();
   const t=filteredItems.length;
   document.getElementById("count-label").textContent=kw?`找到 ${t} 个结果`:`共 ${t} 个文件`;
 }
@@ -592,9 +678,7 @@ function applyFilter(){
 let sortTimer;
 function sortBy(col){
   if(sortCol===col)sortAsc=!sortAsc;else{sortCol=col;sortAsc=true;}
-  setSortIcons();
-  clearTimeout(sortTimer);
-  sortTimer=setTimeout(()=>applyFilter(),80);
+  setSortIcons();clearTimeout(sortTimer);sortTimer=setTimeout(()=>applyFilter(),80);
 }
 function setSortIcons(){
   const ni=document.getElementById("sort-name-icon");
@@ -604,13 +688,10 @@ function setSortIcons(){
   si.className="material-icons-round"+(sortCol==="size"?" visible":"");
   si.textContent=sortAsc?"arrow_upward":"arrow_downward";
 }
-
 let searchTimer;
 function onSearch(){
-  document.getElementById("search-clear").style.display=
-    document.getElementById("search-input").value?"flex":"none";
-  clearTimeout(searchTimer);
-  searchTimer=setTimeout(applyFilter,120);
+  document.getElementById("search-clear").style.display=document.getElementById("search-input").value?"flex":"none";
+  clearTimeout(searchTimer);searchTimer=setTimeout(applyFilter,120);
 }
 function clearSearch(){
   document.getElementById("search-input").value="";
@@ -618,33 +699,31 @@ function clearSearch(){
   applyFilter();
 }
 
-function escHtml(s){
-  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
-}
+function escHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")}
 function renderList(){
   const body=document.getElementById("list-body");
+  // Remove skeleton on first real render
+  const sk=document.getElementById("skeleton-list");
+  if(sk)sk.remove();
   if(!filteredItems.length){
-    body.innerHTML='<div class="empty-state"><span class="material-icons-round">search_off</span><p>没有找到匹配的文件</p></div>';
-    return;
+    body.innerHTML='<div class="empty-state"><span class="material-icons-round">search_off</span><p>没有找到匹配的文件</p></div>';return;
   }
   const selName=currentItem?.name;
   body.innerHTML=filteredItems.map((item,idx)=>
-    `<div class="file-row${item.name===selName?" selected":""}${item.url===null?" no-dl":""}" data-idx="${idx}" onclick="selectItem(${idx})">
+    `<div class="file-row ripple-host${item.name===selName?" selected":""}${item.url===null?" no-dl":""}" data-idx="${idx}" onclick="selectItem(${idx})">
       <span class="file-name" title="${escHtml(item.name)}">${escHtml(item.name)}</span>
       <span class="file-size">${item.size>0?fmtSize(item.size):"—"}</span>
     </div>`).join("");
 }
 
 function selectItem(idx){
-  const item=filteredItems[idx];
-  if(!item)return;
+  const item=filteredItems[idx];if(!item)return;
   document.querySelector(".file-row.selected")?.classList.remove("selected");
   currentItem=item;
   document.querySelector(`.file-row[data-idx="${idx}"]`)?.classList.add("selected");
   document.getElementById("detail-icon").classList.add("has-file");
   document.getElementById("detail-name").textContent=currentItem.name;
-  document.getElementById("detail-meta").textContent=
-    `大小: ${currentItem.size>0?fmtSize(currentItem.size):"—"}  ·  MD5: ${currentItem.md5}`;
+  document.getElementById("detail-meta").textContent=`大小: ${currentItem.size>0?fmtSize(currentItem.size):"—"}  ·  MD5: ${currentItem.md5}`;
   document.getElementById("btn-open").disabled=!currentItem.url;
   document.getElementById("btn-info").disabled=false;
 }
@@ -660,71 +739,42 @@ function clearCurrentItem(){
 let openLock=false;
 function openFile(){
   if(!currentItem?.url||openLock)return;
-  openLock=true;
-  setTimeout(()=>openLock=false,1000);
+  openLock=true;setTimeout(()=>openLock=false,1000);
   window.open(currentItem.url,"_blank");
 }
 
-let dialogCloseTimer=null;
-let dialogCloseDone=null;
-
+let dialogCloseTimer=null,dialogCloseDone=null;
 function openInfoDialog(){
   if(!currentItem)return;
   const el=document.getElementById("info-dialog");
-
-  // 强制中断任何进行中的关闭动画
   if(dialogCloseTimer!==null){clearTimeout(dialogCloseTimer);dialogCloseTimer=null;}
   if(dialogCloseDone!==null){el.removeEventListener("animationend",dialogCloseDone);dialogCloseDone=null;}
   el.classList.remove("closing","open");
-
   const fields=[["文件名",currentItem.name],["大小",currentItem.size>0?fmtSize(currentItem.size):"—"],["MD5",currentItem.md5]];
   if(currentItem.url)fields.push(["下载链接",currentItem.url]);
-  const grid=document.getElementById("info-grid");
-  grid.innerHTML="";
+  const grid=document.getElementById("info-grid");grid.innerHTML="";
   fields.forEach(([label,value])=>{
-    const lbl=document.createElement("div");
-    lbl.className="info-label";
-    lbl.textContent=label;
-    const val=document.createElement("div");
-    val.className="info-value";
-    const span=document.createElement("span");
-    span.style.flex="1";
-    span.textContent=value;
-    const btn=document.createElement("button");
-    btn.className="copy-btn";
-    btn.title="复制";
-    btn.dataset.copy=value;
-    btn.innerHTML='<span class="material-icons-round">content_copy</span>';
-    val.appendChild(span);
-    val.appendChild(btn);
-    grid.appendChild(lbl);
-    grid.appendChild(val);
+    const lbl=document.createElement("div");lbl.className="info-label";lbl.textContent=label;
+    const val=document.createElement("div");val.className="info-value";
+    const span=document.createElement("span");span.style.flex="1";span.textContent=value;
+    const btn=document.createElement("button");btn.className="copy-btn ripple-host";btn.title="复制";
+    btn.dataset.copy=value;btn.innerHTML='<span class="material-icons-round">content_copy</span>';
+    val.appendChild(span);val.appendChild(btn);
+    grid.appendChild(lbl);grid.appendChild(val);
   });
-  void el.offsetWidth;
-  el.classList.add("open");
+  void el.offsetWidth;el.classList.add("open");
 }
 function closeInfoDialog(){
   const el=document.getElementById("info-dialog");
   if(el.classList.contains("closing")||!el.classList.contains("open"))return;
   el.classList.add("closing");
-  dialogCloseDone=()=>{
-    el.classList.remove("open","closing");
-    dialogCloseDone=null;
-    dialogCloseTimer=null;
-  };
+  dialogCloseDone=()=>{el.classList.remove("open","closing");dialogCloseDone=null;dialogCloseTimer=null;};
   el.addEventListener("animationend",dialogCloseDone,{once:true});
-  dialogCloseTimer=setTimeout(()=>{
-    if(dialogCloseDone){
-      el.removeEventListener("animationend",dialogCloseDone);
-      dialogCloseDone();
-    }
-  },300);
+  dialogCloseTimer=setTimeout(()=>{if(dialogCloseDone){el.removeEventListener("animationend",dialogCloseDone);dialogCloseDone();}},300);
 }
 document.getElementById("info-dialog").addEventListener("click",e=>{if(e.target===document.getElementById("info-dialog"))closeInfoDialog();});
-
 document.getElementById("info-grid").addEventListener("click",e=>{
-  const btn=e.target.closest(".copy-btn");
-  if(btn&&btn.dataset.copy!==undefined)copyText(btn.dataset.copy);
+  const btn=e.target.closest(".copy-btn");if(btn&&btn.dataset.copy!==undefined)copyText(btn.dataset.copy);
 });
 
 let snackTimer,hideTimer,_snkDone=null;
@@ -734,11 +784,8 @@ function showSnack(msg){
   clearTimeout(snackTimer);clearTimeout(hideTimer);
   if(_snkDone){el.removeEventListener("animationend",_snkDone);_snkDone=null;}
   el.classList.remove("show","hide");
-  el.style.visibility="visible";
-  el.style.animation="none";
-  void el.offsetWidth;
-  el.style.animation="";
-  el.classList.add("show");
+  el.style.visibility="visible";el.style.animation="none";
+  void el.offsetWidth;el.style.animation="";el.classList.add("show");
   snackTimer=setTimeout(()=>{
     el.classList.remove("show");el.classList.add("hide");
     _snkDone=()=>{el.classList.remove("hide");el.style.visibility="hidden";_snkDone=null;};
@@ -748,27 +795,16 @@ function showSnack(msg){
 }
 let copyLock=false;
 function copyText(text){
-  if(copyLock)return;
-  copyLock=true;
-  setTimeout(()=>copyLock=false,50);
+  if(copyLock)return;copyLock=true;setTimeout(()=>copyLock=false,50);
   if(navigator.clipboard&&window.isSecureContext){
     navigator.clipboard.writeText(text).then(()=>showSnack("已复制到剪贴板")).catch(()=>fallbackCopy(text));
-  }else{
-    fallbackCopy(text);
-  }
+  }else{fallbackCopy(text);}
 }
 function fallbackCopy(text){
-  const ta=document.createElement("textarea");
-  ta.value=text;
+  const ta=document.createElement("textarea");ta.value=text;
   ta.style.cssText="position:fixed;left:-9999px;top:-9999px;opacity:0";
-  document.body.appendChild(ta);
-  ta.focus();ta.select();
-  try{
-    document.execCommand("copy");
-    showSnack("已复制到剪贴板");
-  }catch(e){
-    showSnack("复制失败");
-  }
+  document.body.appendChild(ta);ta.focus();ta.select();
+  try{document.execCommand("copy");showSnack("已复制到剪贴板");}catch{showSnack("复制失败");}
   document.body.removeChild(ta);
 }
 
